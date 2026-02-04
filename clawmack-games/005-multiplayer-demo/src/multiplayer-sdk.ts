@@ -7,7 +7,7 @@ export interface PlayerState {
   id: string
   x: number
   y: number
-  color: number
+  color: number | string
   name: string
 }
 
@@ -27,19 +27,16 @@ export class MultiplayerClient {
   async connect(roomId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        // Generate unique player ID
-        this.playerId = this.generateId()
         this.roomId = roomId || this.generateRoomCode()
         
-        const wsUrl = `${WS_URL}/room/${this.roomId}?playerId=${this.playerId}`
+        const wsUrl = `${WS_URL}/room/${this.roomId}`
         this.ws = new WebSocket(wsUrl)
 
         this.ws.onopen = () => {
           console.log(`[MP] Connected to room: ${this.roomId}`)
           this.isConnected = true
           this.reconnectAttempts = 0
-          this.emit('connected', { roomId: this.roomId, playerId: this.playerId })
-          resolve()
+          // Don't emit connected yet - wait for welcome message
         }
 
         this.ws.onmessage = (event) => {
@@ -72,9 +69,18 @@ export class MultiplayerClient {
           reject(error)
         }
 
+        // Resolve when we receive welcome message (set up in handleMessage)
+        const originalEmit = this.emit.bind(this)
+        this.emit = (event: string, data: any) => {
+          originalEmit(event, data)
+          if (event === 'connected') {
+            resolve()
+          }
+        }
+
         // Timeout for connection
         setTimeout(() => {
-          if (!this.isConnected) {
+          if (!this.playerId) {
             reject(new Error('Connection timeout'))
           }
         }, 10000)
@@ -85,61 +91,72 @@ export class MultiplayerClient {
     })
   }
 
-  private handleMessage(message: { type: string; data: any }) {
-    const { type, data } = message
+  private handleMessage(message: { type: string; [key: string]: any }) {
+    const { type, ...rest } = message
+    console.log('[MP] Received:', type, rest)
 
     switch (type) {
-      case 'room_state':
-        // Full state sync on join
+      case 'welcome':
+        // Server sends welcome with playerId and state
+        this.playerId = message.playerId
         this.players.clear()
-        if (data.players) {
-          for (const player of data.players) {
-            if (player.id !== this.playerId) {
-              this.players.set(player.id, player)
+        if (message.state?.players) {
+          for (const [id, player] of Object.entries(message.state.players)) {
+            if (id !== this.playerId) {
+              this.players.set(id, player as PlayerState)
             }
           }
         }
-        this.emit('room_state', data)
+        console.log(`[MP] Welcomed as ${this.playerId}, ${this.players.size} other players`)
+        this.emit('connected', { roomId: this.roomId, playerId: this.playerId })
+        this.emit('room_state', { players: Array.from(this.players.values()) })
         break
 
       case 'player_joined':
-        if (data.id !== this.playerId) {
-          this.players.set(data.id, data)
-          this.emit('player_joined', data)
+        // Server sends { type: 'player_joined', player: PlayerState }
+        const joinedPlayer = message.player
+        if (joinedPlayer && joinedPlayer.id !== this.playerId) {
+          this.players.set(joinedPlayer.id, joinedPlayer)
+          this.emit('player_joined', joinedPlayer)
         }
         break
 
       case 'player_left':
-        this.players.delete(data.id)
-        this.emit('player_left', data)
+        // Server sends { type: 'player_left', playerId: string }
+        const leftId = message.playerId
+        this.players.delete(leftId)
+        this.emit('player_left', { id: leftId })
         break
 
       case 'move':
-        if (data.id !== this.playerId) {
-          const player = this.players.get(data.id)
+        // Server sends { type: 'move', playerId, x, y }
+        const moveId = message.playerId
+        if (moveId !== this.playerId) {
+          const player = this.players.get(moveId)
           if (player) {
-            player.x = data.x
-            player.y = data.y
+            player.x = message.x
+            player.y = message.y
           }
-          this.emit('move', data)
+          this.emit('move', { id: moveId, x: message.x, y: message.y })
         }
+        break
+
+      case 'error':
+        console.error('[MP] Server error:', message.message)
+        this.emit('error', { message: message.message })
         break
 
       default:
         // Pass through any other message types
-        this.emit(type, data)
+        this.emit(type, rest)
     }
   }
 
   send(type: string, data: any): void {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({
-        type,
-        data: {
-          ...data,
-          id: this.playerId
-        }
-      }))
+      const message = { type, ...data }
+      console.log('[MP] Sending:', message)
+      this.ws.send(JSON.stringify(message))
     }
   }
 
@@ -175,10 +192,7 @@ export class MultiplayerClient {
     this.isConnected = false
     this.players.clear()
     this.roomId = ''
-  }
-
-  private generateId(): string {
-    return 'p_' + Math.random().toString(36).substring(2, 10)
+    this.playerId = ''
   }
 
   private generateRoomCode(): string {
