@@ -1,7 +1,5 @@
 // Multiplayer WebSocket Client SDK
-// Configure your WebSocket URL here
 const WS_URL = 'wss://farcade-multiplayer.remix-gg.workers.dev'
-// For local testing: 'ws://localhost:8787'
 
 export interface PlayerState {
   id: string
@@ -18,6 +16,8 @@ export class MultiplayerClient {
   private listeners: Map<string, EventCallback[]> = new Map()
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
+  private connectResolve: (() => void) | null = null
+  private connectReject: ((error: Error) => void) | null = null
   
   roomId: string = ''
   playerId: string = ''
@@ -26,17 +26,20 @@ export class MultiplayerClient {
 
   async connect(roomId: string): Promise<void> {
     return new Promise((resolve, reject) => {
+      this.connectResolve = resolve
+      this.connectReject = reject
+      
       try {
         this.roomId = roomId || this.generateRoomCode()
         
         const wsUrl = `${WS_URL}/room/${this.roomId}`
+        console.log('[MP] Connecting to:', wsUrl)
         this.ws = new WebSocket(wsUrl)
 
         this.ws.onopen = () => {
-          console.log(`[MP] Connected to room: ${this.roomId}`)
-          this.isConnected = true
-          this.reconnectAttempts = 0
-          // Don't emit connected yet - wait for welcome message
+          console.log('[MP] WebSocket open, sending join...')
+          // Send join message immediately to get welcome response
+          this.ws?.send(JSON.stringify({ type: 'join', name: 'Player' }))
         }
 
         this.ws.onmessage = (event) => {
@@ -53,8 +56,14 @@ export class MultiplayerClient {
           this.isConnected = false
           this.emit('disconnected', { code: event.code, reason: event.reason })
           
-          // Attempt reconnect
-          if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          if (this.connectReject) {
+            this.connectReject(new Error('Connection closed'))
+            this.connectResolve = null
+            this.connectReject = null
+          }
+          
+          // Attempt reconnect only if was previously connected
+          if (this.playerId && this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++
             setTimeout(() => {
               console.log(`[MP] Reconnect attempt ${this.reconnectAttempts}`)
@@ -66,22 +75,20 @@ export class MultiplayerClient {
         this.ws.onerror = (error) => {
           console.error('[MP] WebSocket error:', error)
           this.emit('error', error)
-          reject(error)
-        }
-
-        // Resolve when we receive welcome message (set up in handleMessage)
-        const originalEmit = this.emit.bind(this)
-        this.emit = (event: string, data: any) => {
-          originalEmit(event, data)
-          if (event === 'connected') {
-            resolve()
+          if (this.connectReject) {
+            this.connectReject(new Error('WebSocket error'))
+            this.connectResolve = null
+            this.connectReject = null
           }
         }
 
         // Timeout for connection
         setTimeout(() => {
-          if (!this.playerId) {
-            reject(new Error('Connection timeout'))
+          if (!this.playerId && this.connectReject) {
+            this.connectReject(new Error('Connection timeout'))
+            this.connectResolve = null
+            this.connectReject = null
+            this.ws?.close()
           }
         }, 10000)
 
@@ -99,6 +106,8 @@ export class MultiplayerClient {
       case 'welcome':
         // Server sends welcome with playerId and state
         this.playerId = message.playerId
+        this.isConnected = true
+        this.reconnectAttempts = 0
         this.players.clear()
         if (message.state?.players) {
           for (const [id, player] of Object.entries(message.state.players)) {
@@ -108,12 +117,19 @@ export class MultiplayerClient {
           }
         }
         console.log(`[MP] Welcomed as ${this.playerId}, ${this.players.size} other players`)
+        
+        // Resolve the connect promise
+        if (this.connectResolve) {
+          this.connectResolve()
+          this.connectResolve = null
+          this.connectReject = null
+        }
+        
         this.emit('connected', { roomId: this.roomId, playerId: this.playerId })
         this.emit('room_state', { players: Array.from(this.players.values()) })
         break
 
       case 'player_joined':
-        // Server sends { type: 'player_joined', player: PlayerState }
         const joinedPlayer = message.player
         if (joinedPlayer && joinedPlayer.id !== this.playerId) {
           this.players.set(joinedPlayer.id, joinedPlayer)
@@ -122,14 +138,12 @@ export class MultiplayerClient {
         break
 
       case 'player_left':
-        // Server sends { type: 'player_left', playerId: string }
         const leftId = message.playerId
         this.players.delete(leftId)
         this.emit('player_left', { id: leftId })
         break
 
       case 'move':
-        // Server sends { type: 'move', playerId, x, y }
         const moveId = message.playerId
         if (moveId !== this.playerId) {
           const player = this.players.get(moveId)
@@ -147,7 +161,6 @@ export class MultiplayerClient {
         break
 
       default:
-        // Pass through any other message types
         this.emit(type, rest)
     }
   }
@@ -209,5 +222,4 @@ export class MultiplayerClient {
   }
 }
 
-// Singleton instance for easy access
 export const multiplayer = new MultiplayerClient()
