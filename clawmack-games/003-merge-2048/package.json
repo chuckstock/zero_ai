@@ -1,0 +1,19 @@
+{
+  "name": "merge-2048",
+  "version": "1.0.0",
+  "description": "Hyper-casual 2048 merge puzzle game",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@farcade/game-sdk": "^0.0.8",
+    "phaser": "^3.80.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12"
+  }
+}
