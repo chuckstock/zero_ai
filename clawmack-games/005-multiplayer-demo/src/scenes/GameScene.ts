@@ -15,6 +15,15 @@ const PLAYER_COLORS = [
   0x1fab89, // Green
 ]
 
+// Convert hex string (#FF6B6B) or number to Phaser color number
+function toColorNumber(color: string | number | undefined): number {
+  if (typeof color === 'number') return color
+  if (typeof color === 'string' && color.startsWith('#')) {
+    return parseInt(color.slice(1), 16)
+  }
+  return PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)]
+}
+
 interface PlayerSprite {
   container: Phaser.GameObjects.Container
   circle: Phaser.GameObjects.Arc
@@ -202,7 +211,7 @@ export class GameScene extends Phaser.Scene {
   private addRemotePlayer(data: PlayerState) {
     if (this.remotePlayers.has(data.id)) return
 
-    const color = data.color || PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)]
+    const color = toColorNumber(data.color)
     const name = data.name || data.id.substring(0, 6)
     
     const sprite = this.createPlayerSprite(
