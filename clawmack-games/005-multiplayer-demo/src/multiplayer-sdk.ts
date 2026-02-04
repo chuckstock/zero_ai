@@ -1,6 +1,6 @@
 // Multiplayer WebSocket Client SDK
 // Configure your WebSocket URL here
-const WS_URL = 'wss://farcade-multiplayer.YOUR_SUBDOMAIN.workers.dev'
+const WS_URL = 'wss://farcade-multiplayer.remix-gg.workers.dev'
 // For local testing: 'ws://localhost:8787'
 
 export interface PlayerState {
