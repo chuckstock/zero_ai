@@ -137,7 +137,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   }),
 
   applyGuessResult: (row, results) => {
-    const { board, currentGuess, keyboardState } = get()
+    const { board, keyboardState } = get()
     const newBoard = [...board]
     const guess = board[row].map(t => t.letter).join('')
     
