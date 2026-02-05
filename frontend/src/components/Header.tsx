@@ -31,7 +31,7 @@ export function Header() {
                   {address?.slice(0, 6)}...{address?.slice(-4)}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {balance ? `${Number(balance.formatted).toFixed(4)} ETH` : '...'}
+                  {balance ? `${(Number(balance.value) / 1e18).toFixed(4)} ETH` : '...'}
                 </div>
               </div>
               <button

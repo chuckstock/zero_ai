@@ -1,5 +1,9 @@
 # Word Duel Arena - Deployment
 
+## Live Demo
+
+**🎮 Frontend:** https://word-duel-arena-mythic-labs.vercel.app
+
 ## Sepolia Testnet
 
 ### V2 (Current - Secure)
@@ -8,6 +12,7 @@
 **Fee Vault:** `0x9379e3b2b61720F6e0fe5AAbbd5e1A9EAC506cb5`
 **Oracle:** `0x9379e3b2b61720F6e0fe5AAbbd5e1A9EAC506cb5`
 **Explorer:** https://sepolia.etherscan.io/address/0xD4Ffd32309dbB45F4F5cC153B6bAae5Cbb6d7443
+**Frontend:** https://word-duel-arena-mythic-labs.vercel.app
 
 ### V1 (Deprecated - Security Issues)
 **Contract:** WordDuelArena
@@ -26,6 +31,32 @@
 | Sprint | 0.001 ETH | 30 sec | 30 sec | ✅ |
 | Standard | 0.01 ETH | 45 sec | 45 sec | ✅ |
 | High Roller | 0.1 ETH | 60 sec | 60 sec | ❌ |
+
+## Running the Oracle
+
+The Oracle signs feedback for guesses without revealing the target word on-chain.
+
+```bash
+cd oracle
+cp .env.example .env
+# Edit .env with RPC_URL and PRIVATE_KEY (deployer key)
+
+npm install
+npm run build
+npm start
+```
+
+Then set the target word for a round:
+```bash
+curl -X POST http://localhost:3000/rounds/1/word \
+  -H "Content-Type: application/json" \
+  -d '{"word":"CRANE"}'
+```
+
+The oracle will automatically:
+1. Watch for `GuessRevealed` events
+2. Evaluate guesses against the target word
+3. Sign and submit feedback to the contract
 
 ## How to Play
 

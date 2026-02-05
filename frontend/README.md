@@ -1,73 +1,140 @@
-# React + TypeScript + Vite
+# Word Duel Arena ⚔️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A multiplayer Wordle-style word guessing game on Ethereum (Sepolia testnet).
 
-Currently, two official plugins are available:
+![Word Duel Arena](https://img.shields.io/badge/Ethereum-Sepolia-blue)
+![React](https://img.shields.io/badge/React-18-61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🎮 Game Overview
 
-## React Compiler
+Word Duel Arena is a competitive word guessing game where players compete to solve a secret 5-letter word. All players guess simultaneously, with their guesses committed to the blockchain using a commit-reveal scheme for fairness.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Tiers
+| Tier | Entry Fee | Description |
+|------|-----------|-------------|
+| 🏃 Sprint | 0.001 ETH | Quick games, low stakes |
+| ⚖️ Standard | 0.01 ETH | Balanced gameplay |
+| 💎 HighRoller | 0.1 ETH | High stakes competition |
 
-## Expanding the ESLint configuration
+## 🚀 Quick Start
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
+- Node.js 18+
+- MetaMask or compatible wallet
+- Sepolia testnet ETH ([Faucet](https://sepoliafaucet.com/))
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Installation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# Install dependencies
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Production Build
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
+npm run preview
 ```
+
+## 🎯 How to Play
+
+1. **Connect Wallet** - Click "Connect" and select your wallet
+2. **Join a Round** - Browse active rounds in the lobby and click "Join"
+3. **Make Your Guess** - During commit phase, type a 5-letter word and press ENTER
+4. **Reveal** - When reveal phase starts, click "Reveal" to submit your guess
+5. **Wait for Results** - Oracle validates guesses and provides feedback
+6. **Repeat** - Up to 6 guesses to solve the word
+7. **Claim Prize** - Winners split the pot!
+
+### Game Phases
+
+- **⏳ Waiting** - Round hasn't started, players can register
+- **🟢 Commit** - Type and submit your guess (hashed on-chain)
+- **🟡 Reveal** - Reveal your committed guess for validation
+- **⏸️ Judging** - Oracle processes guesses and provides feedback
+- **🏁 Complete** - Winners can claim their share of the pot
+
+## 🔧 Tech Stack
+
+- **Frontend**: React 18 + Vite + TypeScript
+- **Web3**: wagmi v2 + viem
+- **Styling**: Tailwind CSS
+- **Network**: Sepolia Testnet
+
+## 📜 Smart Contract
+
+**Address**: `0xD4Ffd32309dbB45F4F5cC153B6bAae5Cbb6d7443`
+
+[View on Etherscan](https://sepolia.etherscan.io/address/0xD4Ffd32309dbB45F4F5cC153B6bAae5Cbb6d7443)
+
+### Key Functions
+
+| Function | Description |
+|----------|-------------|
+| `register(roundId)` | Join a round (payable) |
+| `commitGuess(roundId, commitment)` | Submit hashed guess |
+| `revealGuess(roundId, guess, salt, proof[])` | Reveal your guess |
+| `claimPrize(roundId)` | Claim winnings |
+
+## 🎨 Features
+
+- 🌙 Dark theme with Wordle-inspired aesthetics
+- ⌨️ On-screen keyboard with letter status tracking
+- ⏱️ Real-time phase timers
+- 🔐 Commit-reveal scheme for fair play
+- 💰 Prize pool tracking
+- 📱 Responsive design
+
+## 📁 Project Structure
+
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── Header.tsx      # Wallet connection
+│   │   ├── Lobby.tsx       # Round selection
+│   │   ├── Game.tsx        # Main gameplay
+│   │   └── Results.tsx     # Winners & claiming
+│   ├── config/
+│   │   ├── wagmi.ts        # Web3 config
+│   │   └── abi.ts          # Contract ABI
+│   ├── hooks/
+│   │   └── useWordDuel.ts  # Contract interactions
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── index.css           # Tailwind + custom styles
+├── index.html
+└── README.md
+```
+
+## 🛠️ Development
+
+### Environment Variables
+
+No environment variables required for basic setup. The app connects to Sepolia via public RPCs.
+
+For custom RPC:
+```env
+VITE_RPC_URL=https://your-sepolia-rpc.com
+```
+
+### Testing Locally
+
+1. Get Sepolia ETH from a faucet
+2. Connect MetaMask to Sepolia network
+3. Join a round and play!
+
+## 📄 License
+
+MIT
+
+---
+
+Built with ⚔️ for Web3 gaming
