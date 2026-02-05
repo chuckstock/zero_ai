@@ -30,8 +30,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
   const [isConnected, setIsConnected] = useState(false)
 
   // Store actions
-  const { setGame, setOpponentBoard, setTimeRemaining, applyGuessResult } = useGameStore()
-  const { setGames, addGame, removeGame, setQueuePosition, setQueueSize, setInQueue } = useLobbyStore()
+  const { setGame, setOpponentBoard, setTimeRemaining } = useGameStore()
+  const { setQueuePosition, setQueueSize, setInQueue } = useLobbyStore()
   const { addToast } = useToastStore()
 
   const handleMessage = useCallback((event: MessageEvent) => {
@@ -58,11 +58,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
           break
 
         case 'turn_update':
-          const { timeRemaining, currentTurn } = message.payload as {
+          const { timeRemaining: turnTime } = message.payload as {
             timeRemaining: number
             currentTurn: string
           }
-          setTimeRemaining(timeRemaining)
+          setTimeRemaining(turnTime)
           break
 
         case 'queue_update':

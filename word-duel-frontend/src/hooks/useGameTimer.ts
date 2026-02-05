@@ -12,7 +12,7 @@ interface UseGameTimerOptions {
 export function useGameTimer(options: UseGameTimerOptions = {}) {
   const { onTimeout, warningThreshold = 10 } = options
   
-  const { timeRemaining, setTimeRemaining, game } = useGameStore()
+  const { timeRemaining, setTimeRemaining } = useGameStore()
   const { soundEnabled } = useSettingsStore()
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const lastTickRef = useRef<number>(0)
