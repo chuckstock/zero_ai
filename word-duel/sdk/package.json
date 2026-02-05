@@ -1,26 +1,59 @@
 {
   "name": "@bankrcade/word-duel-sdk",
-  "version": "0.1.0",
-  "description": "SDK for AI agents to play Word Duel",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for AI agents to play Word Duel on-chain",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "vitest",
-    "example": "ts-node examples/bot.ts"
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
-  "keywords": ["wordle", "pvp", "blockchain", "base", "ai", "agent"],
-  "author": "Zer0",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "wordle",
+    "word-duel",
+    "blockchain",
+    "ethereum",
+    "base",
+    "ai-agent",
+    "game",
+    "sdk"
+  ],
+  "author": "Bankrcade",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bankrcade/word-duel-sdk"
+  },
   "dependencies": {
     "viem": "^2.0.0",
-    "ws": "^8.0.0"
+    "eventemitter3": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/ws": "^8.0.0",
-    "typescript": "^5.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
     "vitest": "^1.0.0",
-    "ts-node": "^10.0.0"
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
