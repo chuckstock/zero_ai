@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Duel - PvP Wordle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+  <style>
+    .letter-box { width: 62px; height: 62px; }
+    .correct { background-color: #22c55e !important; }
+    .present { background-color: #eab308 !important; }
+    .absent { background-color: #6b7280 !important; }
+    @keyframes flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+    .flip { animation: flip 0.5s ease; }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-lg">
+    <h1 class="text-4xl font-bold text-center mb-2">⚔️ Word Duel</h1>
+    <p class="text-center text-gray-400 mb-8">PvP Wordle on Sepolia</p>
+    
+    <!-- Wallet Connection -->
+    <div id="wallet-section" class="mb-8">
+      <button id="connect-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-semibold transition">
+        Connect Wallet
+      </button>
+      <div id="wallet-info" class="hidden mt-4 p-4 bg-gray-800 rounded-lg">
+        <p class="text-sm text-gray-400">Connected:</p>
+        <p id="wallet-address" class="font-mono text-sm truncate"></p>
+        <p id="wallet-balance" class="text-sm text-gray-400 mt-2"></p>
+      </div>
+    </div>
+    
+    <!-- Game Actions -->
+    <div id="game-actions" class="hidden space-y-4 mb-8">
+      <div class="grid grid-cols-2 gap-4">
+        <button id="create-btn" class="bg-green-600 hover:bg-green-700 py-3 rounded-lg font-semibold transition">
+          Create Game
+        </button>
+        <button id="join-btn" class="bg-purple-600 hover:bg-purple-700 py-3 rounded-lg font-semibold transition">
+          Join Game
+        </button>
+      </div>
+      <div id="game-count" class="text-center text-gray-400 text-sm"></div>
+    </div>
+    
+    <!-- Create Game Modal -->
+    <div id="create-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+      <div class="bg-gray-800 p-6 rounded-xl max-w-md w-full">
+        <h2 class="text-xl font-bold mb-4">Create New Game</h2>
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">Your Secret Word (5 letters)</label>
+          <input id="secret-word" type="text" maxlength="5" 
+            class="w-full bg-gray-700 px-4 py-3 rounded-lg uppercase tracking-widest text-center text-2xl font-bold"
+            placeholder="CRANE">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">Entry Fee (ETH)</label>
+          <input id="entry-fee" type="number" step="0.001" value="0.001"
+            class="w-full bg-gray-700 px-4 py-3 rounded-lg">
+        </div>
+        <div class="flex gap-4">
+          <button id="cancel-create" class="flex-1 bg-gray-600 hover:bg-gray-700 py-3 rounded-lg">Cancel</button>
+          <button id="confirm-create" class="flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-lg">Create</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Join Game Modal -->
+    <div id="join-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+      <div class="bg-gray-800 p-6 rounded-xl max-w-md w-full">
+        <h2 class="text-xl font-bold mb-4">Join Game</h2>
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">Game ID</label>
+          <input id="game-id" type="number" 
+            class="w-full bg-gray-700 px-4 py-3 rounded-lg">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">Your Secret Word (5 letters)</label>
+          <input id="join-secret-word" type="text" maxlength="5" 
+            class="w-full bg-gray-700 px-4 py-3 rounded-lg uppercase tracking-widest text-center text-2xl font-bold"
+            placeholder="SLATE">
+        </div>
+        <div class="flex gap-4">
+          <button id="cancel-join" class="flex-1 bg-gray-600 hover:bg-gray-700 py-3 rounded-lg">Cancel</button>
+          <button id="confirm-join" class="flex-1 bg-purple-600 hover:bg-purple-700 py-3 rounded-lg">Join</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Status Messages -->
+    <div id="status" class="hidden p-4 rounded-lg mb-8"></div>
+    
+    <!-- Contract Info -->
+    <div class="mt-8 p-4 bg-gray-800 rounded-lg text-sm">
+      <h3 class="font-semibold mb-2">Contract Addresses (Sepolia)</h3>
+      <p class="text-gray-400 font-mono text-xs break-all mb-1">
+        WordDuel: <a href="https://sepolia.etherscan.io/address/0x490084F34EebD9c6E6CB635844C7186d021faDc3" target="_blank" class="text-blue-400 hover:underline">0x490084...faDc3</a>
+      </p>
+      <p class="text-gray-400 font-mono text-xs break-all">
+        $WORD: <a href="https://sepolia.etherscan.io/address/0x0B80D534Cd84BF68B6e2e7Fce01C974381f04b8F" target="_blank" class="text-blue-400 hover:underline">0x0B80D5...04b8F</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Contract addresses
+    const WORD_DUEL_ADDRESS = '0x490084F34EebD9c6E6CB635844C7186d021faDc3';
+    const CHAIN_ID = 11155111; // Sepolia
+    
+    // Minimal ABI
+    const WORD_DUEL_ABI = [
+      'function createGame(bytes32 targetWordHash) external payable returns (uint256 gameId)',
+      'function joinGame(uint256 gameId, bytes32 targetWordHash) external payable',
+      'function gameCount() external view returns (uint256)',
+      'function getGame(uint256 gameId) external view returns (tuple(address player1, address player2, uint256 entryFee, uint256 pot, bytes5 targetWord1, bytes5 targetWord2, bytes32 targetHash1, bytes32 targetHash2, uint8 currentRound, uint8 score1, uint8 score2, uint8 state, uint256 lastActionTime, bytes32 commitP1, bytes32 commitP2, bytes5 revealP1, bytes5 revealP2, bool p1Committed, bool p2Committed, bool p1Revealed, bool p2Revealed))',
+      'event GameCreated(uint256 indexed gameId, address indexed creator, uint256 entryFee)',
+    ];
+    
+    let provider, signer, contract;
+    
+    // DOM elements
+    const connectBtn = document.getElementById('connect-btn');
+    const walletInfo = document.getElementById('wallet-info');
+    const walletAddress = document.getElementById('wallet-address');
+    const walletBalance = document.getElementById('wallet-balance');
+    const gameActions = document.getElementById('game-actions');
+    const gameCount = document.getElementById('game-count');
+    const status = document.getElementById('status');
+    
+    // Modals
+    const createModal = document.getElementById('create-modal');
+    const joinModal = document.getElementById('join-modal');
+    
+    function showStatus(message, type = 'info') {
+      status.className = `p-4 rounded-lg mb-8 ${type === 'error' ? 'bg-red-900' : type === 'success' ? 'bg-green-900' : 'bg-blue-900'}`;
+      status.textContent = message;
+      status.classList.remove('hidden');
+    }
+    
+    function hideStatus() {
+      status.classList.add('hidden');
+    }
+    
+    // Connect wallet
+    connectBtn.addEventListener('click', async () => {
+      try {
+        if (!window.ethereum) {
+          showStatus('Please install MetaMask!', 'error');
+          return;
+        }
+        
+        provider = new ethers.BrowserProvider(window.ethereum);
+        
+        // Check network
+        const network = await provider.getNetwork();
+        if (Number(network.chainId) !== CHAIN_ID) {
+          showStatus('Please switch to Sepolia network', 'error');
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x' + CHAIN_ID.toString(16) }],
+            });
+            provider = new ethers.BrowserProvider(window.ethereum);
+          } catch (e) {
+            return;
+          }
+        }
+        
+        signer = await provider.getSigner();
+        const address = await signer.getAddress();
+        const balance = await provider.getBalance(address);
+        
+        walletAddress.textContent = address;
+        walletBalance.textContent = `Balance: ${ethers.formatEther(balance)} ETH`;
+        walletInfo.classList.remove('hidden');
+        connectBtn.textContent = 'Connected ✓';
+        connectBtn.classList.add('bg-green-600');
+        
+        // Initialize contract
+        contract = new ethers.Contract(WORD_DUEL_ADDRESS, WORD_DUEL_ABI, signer);
+        
+        // Show game actions
+        gameActions.classList.remove('hidden');
+        
+        // Get game count
+        const count = await contract.gameCount();
+        gameCount.textContent = `Total games: ${count}`;
+        
+        hideStatus();
+      } catch (err) {
+        showStatus('Error connecting: ' + err.message, 'error');
+      }
+    });
+    
+    // Create game
+    document.getElementById('create-btn').addEventListener('click', () => {
+      createModal.classList.remove('hidden');
+    });
+    
+    document.getElementById('cancel-create').addEventListener('click', () => {
+      createModal.classList.add('hidden');
+    });
+    
+    document.getElementById('confirm-create').addEventListener('click', async () => {
+      try {
+        const word = document.getElementById('secret-word').value.toLowerCase();
+        const fee = document.getElementById('entry-fee').value;
+        
+        if (word.length !== 5) {
+          showStatus('Word must be exactly 5 letters', 'error');
+          return;
+        }
+        
+        showStatus('Creating game...', 'info');
+        createModal.classList.add('hidden');
+        
+        // Generate salt and hash
+        const salt = ethers.randomBytes(32);
+        const wordBytes = ethers.toUtf8Bytes(word.padEnd(5, '\0').slice(0, 5));
+        const wordBytes5 = ethers.hexlify(wordBytes);
+        const hash = ethers.keccak256(ethers.concat([wordBytes5, salt]));
+        
+        // Store salt for later reveal
+        localStorage.setItem('wordDuel_salt', ethers.hexlify(salt));
+        localStorage.setItem('wordDuel_word', word);
+        
+        const tx = await contract.createGame(hash, {
+          value: ethers.parseEther(fee)
+        });
+        
+        showStatus('Transaction submitted, waiting for confirmation...', 'info');
+        const receipt = await tx.wait();
+        
+        // Get game ID from event
+        const event = receipt.logs.find(log => {
+          try {
+            return contract.interface.parseLog(log)?.name === 'GameCreated';
+          } catch { return false; }
+        });
+        
+        const gameId = event ? contract.interface.parseLog(event).args[0] : 'unknown';
+        showStatus(`Game #${gameId} created! Share this ID with your opponent.`, 'success');
+        
+        // Update game count
+        const count = await contract.gameCount();
+        gameCount.textContent = `Total games: ${count}`;
+        
+      } catch (err) {
+        showStatus('Error: ' + err.message, 'error');
+      }
+    });
+    
+    // Join game
+    document.getElementById('join-btn').addEventListener('click', () => {
+      joinModal.classList.remove('hidden');
+    });
+    
+    document.getElementById('cancel-join').addEventListener('click', () => {
+      joinModal.classList.add('hidden');
+    });
+    
+    document.getElementById('confirm-join').addEventListener('click', async () => {
+      try {
+        const gameId = document.getElementById('game-id').value;
+        const word = document.getElementById('join-secret-word').value.toLowerCase();
+        
+        if (!gameId || word.length !== 5) {
+          showStatus('Enter game ID and a 5-letter word', 'error');
+          return;
+        }
+        
+        showStatus('Fetching game details...', 'info');
+        
+        // Get game details to know entry fee
+        const game = await contract.getGame(gameId);
+        const entryFee = game.entryFee;
+        
+        if (game.state !== 1) { // WaitingForP2 = 1
+          showStatus('This game is not available to join', 'error');
+          return;
+        }
+        
+        joinModal.classList.add('hidden');
+        showStatus('Joining game...', 'info');
+        
+        // Generate salt and hash
+        const salt = ethers.randomBytes(32);
+        const wordBytes = ethers.toUtf8Bytes(word.padEnd(5, '\0').slice(0, 5));
+        const wordBytes5 = ethers.hexlify(wordBytes);
+        const hash = ethers.keccak256(ethers.concat([wordBytes5, salt]));
+        
+        // Store salt for later reveal
+        localStorage.setItem('wordDuel_salt_p2', ethers.hexlify(salt));
+        localStorage.setItem('wordDuel_word_p2', word);
+        
+        const tx = await contract.joinGame(gameId, hash, {
+          value: entryFee
+        });
+        
+        showStatus('Transaction submitted, waiting for confirmation...', 'info');
+        await tx.wait();
+        
+        showStatus(`Joined game #${gameId}! Both players need to reveal target words to start.`, 'success');
+        
+      } catch (err) {
+        showStatus('Error: ' + err.message, 'error');
+      }
+    });
+    
+    // Check if already connected
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+        if (accounts.length > 0) {
+          connectBtn.click();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
