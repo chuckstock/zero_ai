@@ -40,7 +40,8 @@ interface KeyProps {
 }
 
 function Key({ value, state, onClick, isWide, disabled }: KeyProps) {
-  // const isSpecial = value === 'ENTER' || value === 'BACKSPACE'
+  // // @ts-ignore unused
+    const _isSpecial = value === 'ENTER' || value === 'BACKSPACE'
 
   return (
     <button

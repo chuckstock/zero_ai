@@ -21,7 +21,7 @@ export default function Game() {
   const navigate = useNavigate()
   const { address } = useAccount()
   const { addToast } = useToastStore()
-  const { send, isConnected } = useWebSocket()
+  const { send } = useWebSocket()
   const { playSubmit, playInvalid, playWin, playLose } = useSound()
   const { fireWinConfetti, fireLoseConfetti } = useConfetti()
   
