@@ -1,0 +1,23 @@
+{
+  "name": "word-duel-server",
+  "version": "0.1.0",
+  "description": "Word Duel game coordination server",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "fastify": "^4.0.0",
+    "@fastify/cors": "^8.0.0",
+    "@fastify/websocket": "^8.0.0",
+    "viem": "^2.0.0",
+    "redis": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
+  }
+}
