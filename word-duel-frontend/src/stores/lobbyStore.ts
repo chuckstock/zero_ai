@@ -30,7 +30,7 @@ interface LobbyStore {
   resetLobby: () => void
 }
 
-export const useLobbyStore = create<LobbyStore>((set, get) => ({
+export const useLobbyStore = create<LobbyStore>((set) => ({
   // Initial state
   games: [],
   inQueue: false,
