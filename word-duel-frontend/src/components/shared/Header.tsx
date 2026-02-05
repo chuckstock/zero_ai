@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useAccount } from 'wagmi'
 import { Settings, Trophy, Home, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import WalletButton from './WalletButton'
@@ -7,7 +6,6 @@ import SettingsModal from './SettingsModal'
 
 export default function Header() {
   const location = useLocation()
-  const { isConnected } = useAccount()
   const [showSettings, setShowSettings] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
 
