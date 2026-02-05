@@ -2,6 +2,14 @@
 
 ## Sepolia Testnet
 
+### V2 (Current - Secure)
+**Contract:** WordDuelArenaV2  
+**Address:** `0xD4Ffd32309dbB45F4F5cC153B6bAae5Cbb6d7443`
+**Fee Vault:** `0x9379e3b2b61720F6e0fe5AAbbd5e1A9EAC506cb5`
+**Oracle:** `0x9379e3b2b61720F6e0fe5AAbbd5e1A9EAC506cb5`
+**Explorer:** https://sepolia.etherscan.io/address/0xD4Ffd32309dbB45F4F5cC153B6bAae5Cbb6d7443
+
+### V1 (Deprecated - Security Issues)
 **Contract:** WordDuelArena
 **Address:** `0xa9CC7ACe55489CBa5C788257679BcdA10a9c319b`
 **Fee Vault:** `0x9379e3b2b61720F6e0fe5AAbbd5e1A9EAC506cb5`
