@@ -79,6 +79,14 @@ Complete rewrite from v1 (custom backend) to v2 (Vite + Convex).
 
 ## [Unreleased]
 
+### Changed
+- **Switched from OpenAI to OpenRouter** (2026-02-06)
+  - Now uses OpenRouter API for AI integration
+  - Access to 50+ models (GPT-4, Claude, Llama, etc.)
+  - Better pricing and flexibility
+  - Environment variable changed: `OPENAI_API_KEY` → `OPENROUTER_API_KEY`
+  - See `OPENROUTER.md` for complete guide
+
 ### Planned Features
 
 **Near-term (Phase 2)**
