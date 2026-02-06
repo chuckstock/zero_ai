@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Node.js 18+ installed
-- OpenAI API key
+- OpenRouter API key (from https://openrouter.ai - supports GPT-4, Claude, etc.)
 - Replicate API key (for image generation)
 
 ## 5-Minute Setup
@@ -38,9 +38,11 @@ VITE_CONVEX_URL=https://your-deployment.convex.cloud
 Add secrets to Convex:
 
 ```bash
-npx convex env set OPENAI_API_KEY "sk-..."
+npx convex env set OPENROUTER_API_KEY "sk-or-v1-..."
 npx convex env set REPLICATE_API_TOKEN "r8_..."
 ```
+
+**Note:** OpenRouter gives you access to multiple models (GPT-4, Claude, Llama, etc.) through one API key.
 
 ### 4. Start Frontend
 
@@ -76,10 +78,11 @@ Visit: http://localhost:3000
 
 ### Issue: AI not responding
 
-**Solution:** Check your OpenAI API key:
+**Solution:** Check your OpenRouter API key:
 ```bash
-npx convex env get OPENAI_API_KEY
+npx convex env get OPENROUTER_API_KEY
 ```
+Also verify you have credits at https://openrouter.ai
 
 ### Issue: Image generation failing
 
@@ -121,7 +124,8 @@ npm run build             # Build frontend
 
 - Convex Docs: https://docs.convex.dev
 - Phaser Docs: https://photonstorm.github.io/phaser3-docs/
-- OpenAI Docs: https://platform.openai.com/docs
+- OpenRouter Docs: https://openrouter.ai/docs
+- OpenRouter Models: https://openrouter.ai/models
 
 ---
 

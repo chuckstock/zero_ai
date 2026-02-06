@@ -6,7 +6,7 @@
 
 - Convex account (free tier available)
 - Vercel account (free tier available)
-- OpenAI API key with credits
+- OpenRouter API key with credits (from https://openrouter.ai)
 - Replicate API key with credits
 
 ---
@@ -33,7 +33,7 @@ This will:
 
 ```bash
 # Set API keys in production
-npx convex env set OPENAI_API_KEY "sk-..." --prod
+npx convex env set OPENROUTER_API_KEY "sk-or-v1-..." --prod
 npx convex env set REPLICATE_API_TOKEN "r8_..." --prod
 ```
 
@@ -367,12 +367,12 @@ jobs:
 - Verify Convex deployment is active
 - Check Convex dashboard for errors
 
-### Issue: "OpenAI API error"
+### Issue: "OpenRouter API error"
 
 **Solution:**
-- Verify API key in Convex env
-- Check OpenAI account has credits
-- Review rate limits
+- Verify API key in Convex env: `npx convex env get OPENROUTER_API_KEY --prod`
+- Check OpenRouter account has credits at https://openrouter.ai
+- Review available models at https://openrouter.ai/models
 
 ### Issue: "Build failed on Vercel"
 

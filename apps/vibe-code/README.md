@@ -24,7 +24,7 @@ AI-powered game development studio. Create games through natural language conver
 - **Frontend:** Vite + React + TypeScript + Tailwind
 - **Backend:** Convex (database + serverless functions + storage)
 - **Game Engine:** Phaser.js
-- **AI:** OpenAI GPT-4, Replicate FLUX
+- **AI:** OpenRouter (GPT-4, Claude, etc.), Replicate FLUX
 
 ## Setup
 
@@ -56,15 +56,22 @@ cp .env.example .env.local
 
 Fill in:
 - `VITE_CONVEX_URL` - from `npx convex dev`
-- `OPENAI_API_KEY` - from OpenAI dashboard
+- `OPENROUTER_API_KEY` - from openrouter.ai (supports GPT-4, Claude, Llama, etc.)
 - `REPLICATE_API_TOKEN` - from replicate.com
 
 ### 4. Add Convex Environment Variables
 
 ```bash
-npx convex env set OPENAI_API_KEY "sk-..."
+npx convex env set OPENROUTER_API_KEY "sk-or-v1-..."
 npx convex env set REPLICATE_API_TOKEN "r8_..."
 ```
+
+**Getting an OpenRouter API Key:**
+1. Visit https://openrouter.ai
+2. Sign up / Log in
+3. Go to Keys section
+4. Create a new API key
+5. Add credits to your account (~$5 is plenty to start)
 
 ### 5. Start Development
 

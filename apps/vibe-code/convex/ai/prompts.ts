@@ -11,6 +11,7 @@ Code Guidelines:
 - Keep code clean and commented
 - Always use 'this' context in Phaser scenes
 - Reference assets by name (e.g., this.add.image(x, y, 'assetName'))
+- Write complete, working game code in the create() function
 
 When the user asks you to:
 - Add/change visuals → use generateImage tool + updateGameCode

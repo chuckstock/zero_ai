@@ -16,7 +16,7 @@ A complete AI-powered game development studio where users create games through n
 - **Frontend:** Vite + React 18 + TypeScript + Tailwind CSS
 - **Backend:** Convex (database + real-time + serverless + storage)
 - **Game Engine:** Phaser.js 3.80
-- **AI:** OpenAI GPT-4 Turbo with tool calling
+- **AI:** OpenRouter (GPT-4, Claude, etc.) with tool calling
 - **Image Gen:** Replicate FLUX Schnell
 
 ### Core Features

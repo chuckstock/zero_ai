@@ -9,9 +9,9 @@ export const processMessage = internalAction({
     messageId: v.id("messages"),
   },
   handler: async (ctx, args) => {
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-    if (!openaiApiKey) {
-      throw new Error("OPENAI_API_KEY not configured");
+    const openrouterApiKey = process.env.OPENROUTER_API_KEY;
+    if (!openrouterApiKey) {
+      throw new Error("OPENROUTER_API_KEY not configured");
     }
 
     try {
@@ -46,15 +46,17 @@ ${game.code}
         })),
       ];
 
-      // Call OpenAI
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      // Call OpenRouter (OpenAI-compatible API)
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${openaiApiKey}`,
+          "Authorization": `Bearer ${openrouterApiKey}`,
           "Content-Type": "application/json",
+          "HTTP-Referer": "https://github.com/chuckstock/zero_ai", // Optional: for rankings
+          "X-Title": "Vibe Code", // Optional: for rankings
         },
         body: JSON.stringify({
-          model: "gpt-4-turbo-preview",
+          model: "openai/gpt-4-turbo-preview", // OpenRouter model format
           messages: openaiMessages,
           tools: TOOL_DEFINITIONS,
           tool_choice: "auto",
