@@ -23,9 +23,11 @@ export default defineSchema({
     }),
     thumbnail: v.optional(v.id("_storage")),
     isPublic: v.boolean(),
+    threadId: v.optional(v.string()), // Agent conversation thread
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_user", ["userId", "createdAt"]),
+  }).index("by_user", ["userId", "createdAt"])
+    .index("by_thread", ["threadId"]),
 
   messages: defineTable({
     gameId: v.id("games"),
