@@ -7,18 +7,7 @@ export const create = mutation({
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-
-    if (!user) throw new Error("User not found");
-
     const gameId = await ctx.db.insert("games", {
-      userId: user._id,
       name: args.name,
       description: args.description,
       code: `// Welcome to Vibe Code!\n// Start building your game by chatting with the AI\n\nfunction create() {\n  this.add.text(400, 300, 'Hello World!', { fontSize: '32px', fill: '#fff' });\n}\n`,
@@ -46,19 +35,8 @@ export const get = query({
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-
-    if (!user) return [];
-
     return await ctx.db
       .query("games")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
       .order("desc")
       .collect();
   },

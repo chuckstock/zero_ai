@@ -12,7 +12,7 @@ export default defineSchema({
   }).index("by_clerk_id", ["clerkId"]),
 
   games: defineTable({
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     name: v.string(),
     description: v.optional(v.string()),
     code: v.string(),
@@ -29,7 +29,7 @@ export default defineSchema({
 
   messages: defineTable({
     gameId: v.id("games"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
     content: v.string(),
     toolCalls: v.optional(v.array(v.object({
@@ -43,7 +43,7 @@ export default defineSchema({
 
   assets: defineTable({
     gameId: v.id("games"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     name: v.string(),
     type: v.union(
       v.literal("image"),

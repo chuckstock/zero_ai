@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// Kept for future use when auth is re-enabled
 export const getOrCreate = mutation({
   args: {
     clerkId: v.string(),
@@ -23,7 +24,7 @@ export const getOrCreate = mutation({
       email: args.email,
       name: args.name,
       avatar: args.avatar,
-      credits: 100, // Starting credits
+      credits: 100,
       createdAt: Date.now(),
     });
 
@@ -33,13 +34,7 @@ export const getOrCreate = mutation({
 
 export const getCurrent = query({
   args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-
-    return await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
+  handler: async () => {
+    return null;
   },
 });
